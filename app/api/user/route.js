@@ -11,4 +11,4 @@ export const GET = async (req) => {
   } catch (err) {
     return new Response("Failed to get all users", { status: 500 })
   }
-}  
+}     

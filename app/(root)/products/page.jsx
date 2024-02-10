@@ -50,7 +50,7 @@ export default function page() {
         </form>
       </div>
 
-      <table className='basic mt-4'>
+      <table className='basic mt-4 w-full'>
         <thead className='border border-x-0 border-t-0 border-gray-600'>
             <tr>
                 <td className='text-lg font-semibold text-gray-600'>PRODUCT NAME</td>

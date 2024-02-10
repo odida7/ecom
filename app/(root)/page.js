@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "../auth";
+import Admin from "@/components/Admin";
 
 
 
@@ -13,8 +14,8 @@ export default async function Home() {
   //console.log('session:', session.user._doc.username);
 
   return (
-    <div className="p-4">
-      home page
+    <div className="w-full">
+      <Admin/>
     </div>
   );
 }
