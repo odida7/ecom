@@ -14,7 +14,7 @@ export const POST = async(request, {params})=>{
 
         const user = await User.findById(userId);
         console.log('user:', user);
-
+    
         if(user){
             if(category){
                const newProduct = new Products({

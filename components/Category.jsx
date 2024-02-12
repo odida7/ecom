@@ -7,7 +7,7 @@ export default function Category({ loading }) {
    // const router = useRouter()
     const [categories, setCategories] = useState([]);
 
-    //////////////////////fetch user
+    
     useEffect(() => {
         const fetchCategory = async () => {
             try {
@@ -17,7 +17,7 @@ export default function Category({ loading }) {
                 setCategories(data);
             } catch (error) {
                 console.error('Error fetching categories:', error);
-            }
+            }   
             //router.refresh();
         };
 
@@ -41,15 +41,16 @@ export default function Category({ loading }) {
                     ) : (
                         categories.map((category) => (
                             <tr key={category.id} className='mt-4'>
-                                <td className='text-md font-semibold'>{category.category}</td>
-                                <td className='gap-4 flex flex-row'>
+                                <td className='text-md font-semibold mt-2'>  {category.category}
+                                </td>
+                                <td className='gap-4 flex flex-row mt-2'>
                                     <Link href={`/categories/${category?._id}/update`}>
-                                        <button className='bg-gray-400 text-sm p-1 text-white rounded-md'>
+                                        <button className='bg-slate-700 hover:bg-slate-500 text-sm p-1 px-2 text-white rounded-md'>
                                             Edit
                                         </button>
                                     </Link>
                                     <Link href={`/categories/${category?._id}/delete`}>
-                                        <button className='bg-red-400 text-sm p-1 text-white rounded-md'>
+                                        <button className='bg-red-500 hover:bg-gray-800 text-sm p-1 px-2 text-white rounded-md'>
                                             Delete
                                         </button>
                                     </Link>

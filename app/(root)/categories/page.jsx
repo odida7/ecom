@@ -78,5 +78,5 @@ export default function page() {
       </div>
       <Category loading={loading}/>
     </div>
-  );
+  ); 
 }

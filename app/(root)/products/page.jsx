@@ -1,9 +1,27 @@
 'use client'
 
-import React from 'react'
+import Link from 'next/link';
+import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 export default function page() {
+
+    const [products, setProducts] = useState([]);
+
+    useEffect(()=>{
+        const fetchProducts= async()=>{
+            try{
+                const res = await fetch('/api/product')
+                const data = await res.json();
+                console.log(data)
+                setProducts(data)
+            }catch (error) {
+                console.error('Error fetching products:', error.message);
+            } 
+            
+        }
+        fetchProducts();
+    }, [])
 
     const {
         handleSubmit,
@@ -12,7 +30,7 @@ export default function page() {
         formState: {errors},
     } = useForm();
 
-    const onSubmit = async(data)=> {
+    const onSubmit = async(data)=> {   
         try{
           console.log(data)
         }catch(error){
@@ -22,32 +40,15 @@ export default function page() {
 
   return (
     <div className='flex flex-col p-2 gap-4 w-full'>
-      <h1 className='flex flex-row text-2xl text-gray-700 font-medium text-center'>Products</h1> 
-     
-      <div>
-        <h2 className='flex flex-row text-lg text-gray-500 text-center'>Add new Products</h2>
+       
+      <div className='flex flex-row items-center justify-between px-8'>
+        <h1 className='flex flex-row text-2xl text-gray-700 font-medium text-center'>Products</h1> 
+        
+        <Link href={'/products/createProduct'}>
+          <span className='flex flex-row text-lg text-white hover:text-slate-500 p-1 rounded-md text-center bg-blue-500 hover:bg-blue-300'>Add new Products</span>
+        </Link>
+        
 
-        <form 
-          onSubmit={handleSubmit(onSubmit)} 
-          className='flex flex-col gap-2 w-full'
-        >
-            <fieldset className='flex flex-col'>
-                <input 
-                  type='text' 
-                  placeholder='product name'
-                  className='outline-none border border-gray-700 rounded-md w-1/2 p-2'
-                  {...register('product', {required: true})}
-                />
-                {errors.product?.type == 'required' && (
-                    <p className='text-xs text-yellow-600'>This field is required</p>
-                )}
-            </fieldset>
-
-            <button type="submit" className='bg-blue-400 text-white p-1 w-fit rounded hover:bg-blue-300'>
-                save
-            </button>
-
-        </form>
       </div>
 
       <table className='basic mt-4 w-full'>
@@ -59,69 +60,29 @@ export default function page() {
             </tr>
         </thead>
         <tbody className='mt-2'>
-            <tr className='mt-4'>
-                <td className='text-md font-semibold'>
-                    Nokia
-                </td>
+           {products?.map((product)=>(
 
-                <td className='gap-4 flex flex-row'>
-                    <button className='bg-gray-400 text-sm p-1 text-white rounded-md'>
-                        Edit
-                    </button>
+                <tr className='mt-4' key={product.id}>
+                    <td className='text-md font-semibold mt-2'>
+                        {product.name}
+                    </td>
 
-                    <button className='bg-red-400 text-sm p-1 text-white rounded-md'>
-                        Delete
-                    </button>
-                </td>
-            </tr>
+                    <td className='gap-4 flex flex-row mt-2'>
+                         <Link href={`/products/${product?._id}/update`}>
+                            <button className='bg-slate-700 hover:bg-slate-500 text-sm p-1 px-2 text-white rounded-md'>
+                                Edit
+                            </button>
+                        </Link>
+                        <Link href={`/products/${product?._id}/delete`}>
+                            <button className='bg-red-500 hover:bg-gray-800 text-sm p-1 px-2 text-white rounded-md'>
+                                Delete
+                            </button>
+                        </Link>
+                    </td>
+                </tr>
+           ))}
 
-            <tr className='mt-4'>
-                <td className='text-md font-semibold'>
-                   Flat screen
-                </td>
 
-                <td className='gap-4 flex flex-row'>
-                    <button className='bg-gray-400 text-sm p-1 text-white rounded-md'>
-                        Edit
-                    </button>
-
-                    <button className='bg-red-400 text-sm p-1 text-white rounded-md'>
-                        Delete
-                    </button>
-                </td>
-            </tr>
-
-            <tr className='mt-4'>
-                <td className='text-md font-semibold'>
-                    Shoes
-                </td>
-
-                <td className='gap-4 flex flex-row'>
-                    <button className='bg-gray-400 text-sm p-1 text-white rounded-md'>
-                        Edit
-                    </button>
-
-                    <button className='bg-red-400 text-sm p-1 text-white rounded-md'>
-                        Delete
-                    </button>
-                </td>
-            </tr>
-
-            <tr className='mt-4'>
-                <td className='text-md font-semibold'>
-                    Speakers
-                </td>
-
-                <td className='gap-4 flex flex-row'>
-                    <button className='bg-gray-400 text-sm p-1 text-white rounded-md'>
-                        Edit
-                    </button>
-
-                    <button className='bg-red-400 text-sm p-1 text-white rounded-md'>
-                        Delete
-                    </button>
-                </td>
-            </tr>
         </tbody>
       </table>
        
