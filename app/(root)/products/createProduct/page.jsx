@@ -11,9 +11,20 @@ export default function page() {
     const [categories, setCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('');
     const [loading, setLoading] = useState(false); // State for loading indicator
+  const [image, setImage] = useState(null);
+
+
+    const onImageChange = (event) => {
+    if (event.target.files && event.target.files[0]) {
+      const img = event.target.files[0];
+      setImage(img);
+     // setImageUrl(URL.createObjectURL(img)); // Save the URL  
+    }
+  };
+
 
     if (status === 'unauthenticated') {
-    router.push('/login');
+    router.push('/login');    
     }
 
     const userId = session?.user?._doc?._id;
@@ -43,27 +54,53 @@ export default function page() {
     } = useForm();
 
     /////////onsubmit
-    const onSubmit =async(formData)=>{
-      try {
-      setLoading(true); // Set loading to true when form is submitted
-      const res = await fetch('/api/product', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ userId, categoryId: selectedCategory, ...formData }),
-      });
+    const onSubmit = async (formData) => {
+    try {
+        setLoading(true); // Set loading to true when form is submitted
 
-      if (res.ok) {
-        reset();
-        router.push('/products')
-      } else {
-        throw new Error('Failed to create product');
-      }
+        // Create a new FormData object to include both image and other form data
+        const imgData = new FormData();
+        imgData.append('file', image); // Append the image file to FormData
+        imgData.append('upload_preset', 'pinterest'); // Specify upload preset (if needed)
+
+        // Upload the image to Cloudinary
+        const cloudinaryResponse = await fetch('https://api.cloudinary.com/v1_1/your_cloud_name/image/upload', {
+            method: 'POST',
+            body: imgData,
+        });
+
+        // Extract the image URL from Cloudinary response
+        const cloudinaryData = await cloudinaryResponse.json();
+        const imageUrl = cloudinaryData.secure_url;
+
+        // Construct the product data including the image URL
+        const productData = {
+            userId,
+            categoryId: selectedCategory,
+            image: imageUrl,
+            ...formData, // Include other form data if needed
+        };
+
+        // Send the product data to your API endpoint
+        const res = await fetch('/api/product', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(productData),
+        });
+
+        if (res.ok) {
+            reset();
+            router.push('/products');
+        } else {
+            throw new Error('Failed to create product');
+        }
     } catch (error) {
-      console.error('Error submitting form:', error.message);
+        console.error('Error submitting form:', error.message);
     } finally {
-      setLoading(false); // Set loading to false after form submission completes
+        setLoading(false); // Set loading to false after form submission completes
     }
-    }
+};
+
 
   return (
     <div className='flex flex-col p-2 gap-4 w-full'>
@@ -106,6 +143,7 @@ export default function page() {
             <input 
               type='file'
               name='image'
+              onChange={onImageChange}
               placeholder='image'
               className='border-b-2 bg-transparent outline-none'
             />
