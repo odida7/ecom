@@ -23,20 +23,7 @@ export default function page() {
         fetchProducts();
     }, [])
 
-    const {
-        handleSubmit,
-        register,
-        reset,
-        formState: {errors},
-    } = useForm();
-
-    const onSubmit = async(data)=> {   
-        try{
-          console.log(data)
-        }catch(error){
-          console.error('Error submitting form:', error);
-        }
-    }
+  
 
   return (
     <div className='flex flex-col p-2 gap-4 w-full'>

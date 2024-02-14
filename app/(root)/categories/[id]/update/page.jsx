@@ -12,7 +12,7 @@ export default function page({params}) {
     const router = useRouter()
     
     const {data: session, status} = useSession()
-    const [ categories, setCategories] = useState({});
+    const [ categories, setCategories] = useState([]);
   
      if (status === "unauthenticated") {
     router?.push("/login");
@@ -20,14 +20,16 @@ export default function page({params}) {
 
     useEffect(()=>{
        const fetchCategory = async()=>{
-        const res = await fetch(`/api/category/${id}`,{
-            method: 'GET'
-        });
-
-        const data = res.json();
-        //console.log('categorydata:', data)
-        setCategories(data)
+            try{
+            const res = await fetch(`/api/category/${id}`);
+            const data = res.json();
+            console.log('categorydata:', data)
+            setCategories(data)
+        }catch(error){
+            console.error('Error fetching products:', error.message);
+        }  
        }
+        
 
        fetchCategory();
     }, [])

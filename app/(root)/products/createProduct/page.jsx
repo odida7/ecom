@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form';
 
 export default function page() {
@@ -11,14 +11,18 @@ export default function page() {
     const [categories, setCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('');
     const [loading, setLoading] = useState(false); // State for loading indicator
-  const [image, setImage] = useState(null);
+    const [image, setImage] = useState(null);
+    const [imageUrl, setImageUrl] = useState(null);
+    const imageRef = useRef();
+
+
 
 
     const onImageChange = (event) => {
     if (event.target.files && event.target.files[0]) {
       const img = event.target.files[0];
       setImage(img);
-     // setImageUrl(URL.createObjectURL(img)); // Save the URL  
+      setImageUrl(URL.createObjectURL(img)); // Save the URL  
     }
   };
 
@@ -64,7 +68,7 @@ export default function page() {
         imgData.append('upload_preset', 'pinterest'); // Specify upload preset (if needed)
 
         // Upload the image to Cloudinary
-        const cloudinaryResponse = await fetch('https://api.cloudinary.com/v1_1/your_cloud_name/image/upload', {
+        const cloudinaryResponse = await fetch('https://api.cloudinary.com/v1_1/dfh89obzs/image/upload', {
             method: 'POST',
             body: imgData,
         });
@@ -129,7 +133,7 @@ export default function page() {
             onChange={(e) => setSelectedCategory(e.target.value)}
             className='border-b-2 outline-none'>
                 <option value=''>Select Category</option>
-            {     categories.length > 0 &&
+                  {categories.length > 0 &&
                    categories.map((c) => (
                     <option key={c._id} value={c._id}>
                         {c.category}
@@ -139,16 +143,40 @@ export default function page() {
          </fieldset>
         
 
-         <fieldset className='flex flex-col m-4 p-2 gap-1 w-full'>
+         <fieldset className='invisible absolute'>
             <input 
               type='file'
               name='image'
+              ref={imageRef}
               onChange={onImageChange}
               placeholder='image'
-              className='border-b-2 bg-transparent outline-none'
+              accept='image/*'
+              className='invisible absolute'
             />
             
          </fieldset>
+        
+        {/*******image preview  */}
+
+          <div
+          onClick={() => {
+            imageRef.current.click();
+          }}
+          className='bg-gray-100 hover:bg-gray-300 p-4 w-full'
+
+        >
+          {image ? (
+            <img
+              src={imageUrl}
+              alt=''
+              width={200}
+              height={200}
+              className='object-cover'
+            />
+          ) : (
+            <p className='text-slate-500 text-lg font-bold'>Add Images</p>
+          )}
+        </div>  
 
          <fieldset className='flex flex-col m-4 p-2 gap-1 w-full'>
             <input 

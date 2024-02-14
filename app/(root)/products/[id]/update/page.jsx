@@ -1,9 +1,10 @@
 'use client'
 
 import { useSession } from 'next-auth/react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form';
 
 export default function page({params}) {
@@ -13,6 +14,11 @@ export default function page({params}) {
     const [categories, setCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('');
     const [loading, setLoading] = useState(false); // State for loading indicator
+    const [products, setProducts] = useState([]);
+
+    const [image, setImage] = useState(null);
+    const [imageUrl, setImageUrl] = useState(null);
+    const imageRef = useRef();
 
     if (status === 'unauthenticated') {
     router.push('/login');
@@ -20,13 +26,39 @@ export default function page({params}) {
 
     const userId = session?.user?._doc?._id;
 
+     const onImageChange = (event) => {
+    if (event.target.files && event.target.files[0]) {
+      const img = event.target.files[0];
+      setImage(img);
+      setImageUrl(URL.createObjectURL(img)); // Save the URL  
+    }
+  };
+
+
+
+   useEffect(()=>{
+        const fetchProducts= async()=>{
+            try{
+                const res = await fetch(`/api/product/${id}`)
+                const data = await res.json();
+                //console.log('product:',data)
+                setProducts(data)
+            }catch (error) {
+                console.error('Error fetching products:', error.message);
+            } 
+            
+        }
+        fetchProducts();
+    }, [])
+
+
 
     useEffect(() => {
         const fetchCategory = async () => {
             try {
                 const response = await fetch('/api/category');
                 const data = await response.json();
-                 console.log('categoryData:', data);
+                 //console.log('categoryData:', data);
                 setCategories(data);
             } catch (error) {
                 console.error('Error fetching categories:', error);
@@ -48,17 +80,42 @@ export default function page({params}) {
     const onSubmit =async(formData)=>{
       try {
       setLoading(true); // Set loading to true when form is submitted
+
+      const imgData = new FormData();
+        imgData.append('file', image); // Append the image file to FormData
+        imgData.append('upload_preset', 'pinterest'); // Specify upload preset (if needed)
+
+        // Upload the image to Cloudinary
+        const cloudinaryResponse = await fetch('https://api.cloudinary.com/v1_1/dfh89obzs/image/upload', {
+            method: 'POST',
+            body: imgData,
+        });
+
+        // Extract the image URL from Cloudinary response
+        const cloudinaryData = await cloudinaryResponse.json();
+        const imageUrl = cloudinaryData.secure_url;
+
+        // Construct the product data including the image URL
+        const productData = {
+            userId,
+            categoryId: selectedCategory,
+            image: imageUrl,
+            ...formData, // Include other form data if needed
+        };
+
+
       const res = await fetch(`/api/product/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ userId, categoryId: selectedCategory, ...formData }),
+        body: JSON.stringify(productData),
+
       });
 
       if (res.ok) {
         reset();
         router.push('/products')
       } else {
-        throw new Error('Failed to create product');
+        throw new Error('Failed to update product');
       }
     } catch (error) {
       console.error('Error submitting form:', error.message);
@@ -76,9 +133,11 @@ export default function page({params}) {
          
 
          <fieldset className='flex flex-col m-4 p-2 gap-1 w-full'>
+          
             <input 
               type='text'
               name='name'
+              defaultValue={products?.name}
               placeholder='product'
               className='border-b-2 bg-transparent outline-none'
               {...register('name', {required: true})}
@@ -93,7 +152,7 @@ export default function page({params}) {
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
             className='border-b-2 outline-none'>
-                <option value=''>Select Category</option>
+                <option value=''>{products?.categoryId}</option>
             {     categories.length > 0 &&
                    categories.map((c) => (
                     <option key={c._id} value={c._id}>
@@ -104,20 +163,49 @@ export default function page({params}) {
          </fieldset>
         
 
-         <fieldset className='flex flex-col m-4 p-2 gap-1 w-full'>
+         
+         <fieldset className='invisible absolute'>
             <input 
               type='file'
               name='image'
+              ref={imageRef}
+              onChange={onImageChange}
               placeholder='image'
-              className='border-b-2 bg-transparent outline-none'
+              accept='image/*'
+              className='invisible absolute'
             />
             
          </fieldset>
+        
+        {/*******image preview  */}
+
+          <div
+            onClick={() => {
+              imageRef.current.click();
+            }}
+            className='bg-gray-100 hover:bg-gray-300 p-4 w-full'
+        >
+          {image ? (
+            <img
+              src={imageUrl}
+              alt=''
+              width={200}
+              height={200}
+              className='object-cover'
+            />
+          ) : (
+            products?.image &&
+               <Image src={products?.image} alt='profile-pic' width={200} height={200} className='object-cover w-auto h-auto'/> 
+          )}
+        </div> 
+            
+        
 
          <fieldset className='flex flex-col m-4 p-2 gap-1 w-full'>
             <input 
               type='text'
               name='price'
+              defaultValue={products?.price}
               placeholder='price'
               className='border-b-2 bg-transparent outline-none'
               {...register('price', {required: true})}
@@ -131,6 +219,7 @@ export default function page({params}) {
             <input 
               type='text'
               name='desc'
+              defaultValue={products?.desc}
               placeholder='Descriptions'
               className='border-b-2 bg-transparent outline-none'
               {...register('desc', {required: true})}
