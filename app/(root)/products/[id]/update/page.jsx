@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form';
 
-export default function page({params}) {
+export default function page({params}) { 
     const id = params?.id;
     const { data: session, status } = useSession();
     const router = useRouter();
@@ -34,7 +34,7 @@ export default function page({params}) {
     }
   };
 
-
+ 
 
    useEffect(()=>{
         const fetchProducts= async()=>{
